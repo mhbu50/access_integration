@@ -1,0 +1,22 @@
+{
+ "content": null, 
+ "creation": "2016-12-15 17:02:35.609440", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2016-12-15 17:04:03.819479", 
+ "modified_by": "Administrator", 
+ "module": "Access integration", 
+ "name": "access-integration", 
+ "owner": "Administrator", 
+ "page_name": "Access integration", 
+ "roles": [
+  {
+   "role": "Administrator"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Access integration"
+}

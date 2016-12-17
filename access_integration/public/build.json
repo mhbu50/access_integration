@@ -1,0 +1,23 @@
+{
+    "css/access_integration.css": [
+        "public/css/jqx.base.css"
+    ],
+
+    "js/access_integration.js": [
+        "public/js/jqxcore.js",
+        "public/js/jqxdata.js",
+        "public/js/jqxbuttons.js",
+        "public/js/jqxscrollbar.js",
+        "public/js/jqxmenu.js",
+        "public/js/jqxgrid.js",
+        "public/js/jqxgrid.selection.js",
+        "public/js/jqxgrid.edit.js",
+        "public/js/jqxgrid.grouping.js",
+        "public/js/jqxgrid.sort.js",
+        "public/js/jqxwindow.js",
+        "public/js/jqxlistbox.js",
+        "public/js/jqxdropdownlist.js",
+        "public/js/jqxinput.js",
+        "public/js/demos.js"
+    ]
+}
