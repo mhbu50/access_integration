@@ -1,10 +1,13 @@
 <div id="jqxWidget" style="font-size: 13px; font-family: Verdana; float: left;">
     <h3>Tables</h3>
-    <div id="customersGrid">
+    <div id="tableGrid">
     </div>
     <h3>Fields</h3>
-    <div id="ordersGrid">
+    <div id="columnsGrid">
     </div>
+    <br>
+    <input id="insert" type="button" value="Insert" /></td>
+    <input id="insertall" type="button" value="Insert All" /></td>
 
     <div id="popupWindow">
         <div>Edit</div>
@@ -30,15 +33,27 @@
         <div style="overflow: hidden;">
             <table>
                 <tr>
-                    <td align="right">Table :</td>
-                    <td align="left"><input id="tabletName2" /></td>
+                    <td align="right">fieldname :</td>
+                    <td align="left"><input id="fieldname" /></td>
+                </tr>
+                <tr>
+                    <td align="right">fieldtype :</td>
+                    <td align="left"><input id="fieldtype" /></td>
+                </tr>
+                <tr>
+                    <td align="right">label :</td>
+                    <td align="left"><input id="label" /></td>
+                </tr>
+                <tr>
+                    <td align="right">Required :</td>
+                    <td align="left"><input id="Required" /></td>
                 </tr>
 
                 <tr>
                     <td align="right"></td>
                     <td style="padding-top: 10px;" align="right">
-                        <input style="margin-right: 5px;" type="button" id="Save2" value="Save2" />
-                        <input id="Cancel2" type="button" value="Cancel2" /></td>
+                        <input style="margin-right: 5px;" type="button" id="Save2" value="Save" />
+                        <input id="Cancel2" type="button" value="Cancel" /></td>
                 </tr>
             </table>
         </div>

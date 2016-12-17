@@ -31,15 +31,16 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                 var file = "vv.mdb"
                 if (this.fields_dict.attach.fileobj) {
                     file = this.fields_dict.attach.fileobj.filename;
-                    console.log("attach", this.fields_dict.attach.fileobj.filename);
+                    // console.log("attach", this.fields_dict.attach.fileobj.filename);
                 }
 
                 frappe.call({
-                    "method": "access_integration.access_integration.doctype.access_integration.access_integration.do_insert",
+                    "method": "access_integration.access_integration.doctype.access_integration.access_integration.get_db",
                     args: {
                         file: file
                     },
                     callback: function(data) {
+
                         var d = JSON.parse(data.message);
                         console.log(d);
 
@@ -54,37 +55,18 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                         var dataFields = [{
                             name: 'Table'
                         }, {
-                            name: 'OrderID'
+                            name: 'fieldname'
                         }, {
-                            name: 'OrderDate',
-                            type: 'date'
+                            name: 'reqd'
                         }, {
-                            name: 'ShippedDate',
-                            type: 'date'
+                            name: 'label'
                         }, {
-                            name: 'ShipName'
-                        }, {
-                            name: 'ShipCountry'
+                            name: 'fieldtype'
                         }];
 
                         var subSource = {
                             datafields: dataFields,
-                            localdata: [{
-                                "OrderID": 10248,
-                                "Table": "WILMK",
-                                "EmployeeID": 5,
-                                "OrderDate": "1996-07-04 00:00:00",
-                                "RequiredDate": "1996-08-01 00:00:00",
-                                "ShippedDate": "1996-07-16 00:00:00",
-                                "ShipVia": 3,
-                                "Freight": 32.3800,
-                                "ShipName": "Vins et alcools Chevalier",
-                                "ShipAddress": "59 rue de l-Abbaye",
-                                "ShipCity": "Reims",
-                                "ShipRegion": null,
-                                "ShipPostalCode": 51100,
-                                "ShipCountry": "France"
-                            }]
+                            localdata: []
                         };
                         for (var variable in d) {
                             if (d.hasOwnProperty(variable)) {
@@ -93,17 +75,12 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                                     "Table": variable,
                                     "table": variable
                                 });
-                                for (var x in d[variable]) {
-                                    if (d[variable].hasOwnProperty(x)) {
-                                        console.log("x", d[variable][x]);
-                                    }
-                                }
                             }
                         }
 
                         console.log("source = ", source);
                         var dataAdapter = new $.jqx.dataAdapter(source);
-                        $("#customersGrid").jqxGrid({
+                        $("#tableGrid").jqxGrid({
                             source: dataAdapter,
                             editable: true,
                             editmode: 'click'
@@ -116,35 +93,41 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                             }
                         }
 
-                        $("#customersGrid").on('rowselect', function(event) {
-                            console.log("event.args.row. = ", event);
+                        $("#tableGrid").on('rowselect', function(event) {
+                            var dataRecord = $("#tableGrid").jqxGrid('getrowdata', event);
                             var Table = event.args.row.Table;
-                            var records = new Array();
-                            var length = dataAdapter.records.length;
-                            for (var i = 0; i < length; i++) {
-                                var record = dataAdapter.records[i];
-                                if (record.Table == Table) {
-                                    records[records.length] = record;
+
+                            console.log("Table ", d[Table]);
+                            var dataSource = {
+                                datafields: dataFields,
+                                localdata: []
+                            }
+
+                            var fld = new Array();
+                            for (var x in d[Table]) {
+                                if (d[Table].hasOwnProperty(x)) {
+                                    if (d[Table][x].fieldname)
+                                        dataSource.localdata.push({
+                                            "fieldname": d[Table][x].fieldname,
+                                            "fieldtype": d[Table][x].fieldtype,
+                                            "label": d[Table][x].label
+                                        });
                                 }
                             }
 
-
-                            var dataSource = {
-                                datafields: dataFields,
-                                localdata: records
-                            }
                             var adapter = new $.jqx.dataAdapter(dataSource);
 
                             // update data source.
-                            $("#ordersGrid").jqxGrid({
+                            $("#columnsGrid").jqxGrid({
                                 source: adapter,
                                 editable: true
                             });
                         });
 
                     }
-                });
 
+                });
+      d.hide();
             }
         });
         d.show();
@@ -153,31 +136,7 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
     $(frappe.render_template("table")).appendTo(page.page_form);
 
     $(document).ready(function() {
-        // initialize the popup window and buttons.
-        $("#popupWindow").jqxWindow({
-            width: 250,
-            resizable: false,
-            isModal: true,
-            autoOpen: false,
-            cancelButton: $("#Cancel"),
-            modalOpacity: 0.01
-        });
-        $("#popupWindow").on('open', function() {
-            $("#tabletName").jqxInput('selectAll');
-        });
-
-        $("#Cancel").jqxButton({ theme: theme });
-          $("#Save").jqxButton({ theme: theme });
-          // update the edited row when the user clicks the 'Save' button.
-          $("#Save").click(function () {
-              if (editrow >= 0) {
-                  var row = { table: $("#tabletName").val() };
-
-                  var rowID = $('#customersGrid').jqxGrid('getrowid', editrow);
-                  $('#customersGrid').jqxGrid('updaterow', rowID, row);
-                  $("#popupWindow").jqxWindow('hide');
-              }
-          });
+        init_pops();
         // prepare the data
         var source = {
             datafields: [{
@@ -190,16 +149,15 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
 
 
         var dataAdapter = new $.jqx.dataAdapter(source);
-        $("#customersGrid").jqxGrid({
+        $("#tableGrid").jqxGrid({
             width: 250,
             height: 250,
             source: dataAdapter,
             editable: true,
             editmode: 'click',
-            selectionmode: 'singlecell',
+            selectionmode: 'singlerow',
             keyboardnavigation: false,
-            columns: [
-              {
+            columns: [{
                 text: 'Table Name',
                 datafield: 'table',
                 width: 200,
@@ -214,7 +172,7 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                 buttonclick: function(row) {
                     // open the popup window when the user clicks a button.
                     editrow = row;
-                    var offset = $("#customersGrid").offset();
+                    var offset = $("#tableGrid").offset();
                     $("#popupWindow").jqxWindow({
                         position: {
                             x: parseInt(offset.left) + 60,
@@ -222,124 +180,163 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                         }
                     });
                     // get the clicked row's data and initialize the input fields.
-                    var dataRecord = $("#customersGrid").jqxGrid('getrowdata', editrow);
-                    console.log("dataRecord",dataRecord);
+                    var dataRecord = $("#tableGrid").jqxGrid('getrowdata', editrow);
+                    console.log("dataRecord", dataRecord);
                     $("#tabletName").val(dataRecord.table);
                     // show the popup window.
                     $("#popupWindow").jqxWindow('open');
                 }
             }]
         });
-        // Orders Grid
+        // columns Grid
         // prepare the data
         var dataFields = [{
             name: 'Table'
         }, {
-            name: 'OrderID'
+            name: 'fieldname'
         }, {
-            name: 'OrderDate',
-            type: 'date'
+            name: 'reqd'
         }, {
-            name: 'ShippedDate',
-            type: 'date'
+            name: 'label'
         }, {
-            name: 'ShipName'
-        }, {
-            name: 'ShipCountry'
+            name: 'fieldtype'
         }];
-        var source = {
-            datafields: dataFields,
-            localdata: [{
-                "OrderID": 10248,
-                "Table": "WILMK",
-                "EmployeeID": 5,
-                "OrderDate": "1996-07-04 00:00:00",
-                "RequiredDate": "1996-08-01 00:00:00",
-                "ShippedDate": "1996-07-16 00:00:00",
-                "ShipVia": 3,
-                "Freight": 32.3800,
-                "ShipName": "Vins et alcools Chevalier",
-                "ShipAddress": "59 rue de l-Abbaye",
-                "ShipCity": "Reims",
-                "ShipRegion": null,
-                "ShipPostalCode": 51100,
-                "ShipCountry": "France"
-            }, {
-                "OrderID": 10249,
-                "Table": "TOMSP",
-                "EmployeeID": 6,
-                "OrderDate": "1996-07-05 00:00:00",
-                "RequiredDate": "1996-08-16 00:00:00",
-                "ShippedDate": "1996-07-10 00:00:00",
-                "ShipVia": 1,
-                "Freight": 11.6100,
-                "ShipName": "Toms Spezialitten",
-                "ShipAddress": "Luisenstr. 48",
-                "ShipCity": "Mnster",
-                "ShipRegion": null,
-                "ShipPostalCode": 44087,
-                "ShipCountry": "Germany"
-            }, {
-                "OrderID": 10250,
-                "Table": "HANAR",
-                "EmployeeID": 4,
-                "OrderDate": "1996-07-08 00:00:00",
-                "RequiredDate": "1996-08-05 00:00:00",
-                "ShippedDate": "1996-07-12 00:00:00",
-                "ShipVia": 2,
-                "Freight": 65.8300,
-                "ShipName": "Hanari Carnes",
-                "ShipAddress": "Rua do Pao, 67",
-                "ShipCity": "Rio de Janeiro",
-                "ShipRegion": "RJ",
-                "ShipPostalCode": "05454-876",
-                "ShipCountry": "Brazil"
-            }, {
-                "OrderID": 11066,
-                "Table": "WHITC",
-                "EmployeeID": 7,
-                "OrderDate": "1998-05-01 00:00:00",
-                "RequiredDate": "1998-05-29 00:00:00",
-                "ShippedDate": "1998-05-04 00:00:00",
-                "ShipVia": 2,
-                "Freight": 44.7200,
-                "ShipName": "White Clover Markets",
-                "ShipAddress": "1029 - 12th Ave. S.",
-                "ShipCity": "Seattle",
-                "ShipRegion": "WA",
-                "ShipPostalCode": 98124,
-                "ShipCountry": "USA"
-            }, ]
-        };
+        var source;
+
         var dataAdapter = new $.jqx.dataAdapter(source);
         dataAdapter.dataBind();
 
 
-        $("#ordersGrid").jqxGrid({
+        $("#columnsGrid").jqxGrid({
             width: 850,
             height: 250,
             keyboardnavigation: false,
             columns: [{
-                text: 'Column Name',
-                datafield: 'OrderID',
-                width: 100
-            }, {
-                text: 'Label',
-                datafield: 'OrderDate',
-                cellsformat: 'd',
+                text: 'fieldname',
+                datafield: 'fieldname',
                 width: 150
+            }, {
+                text: 'fieldtype',
+                datafield: 'fieldtype',
+                width: 150
+            }, {
+                text: 'label',
+                datafield: 'label'
             }, {
                 text: 'Required',
-                datafield: 'ShippedDate',
+                datafield: 'reqd',
                 cellsformat: 'd',
                 width: 150
             }, {
-                text: 'Type',
-                datafield: 'ShipName'
+                text: 'Edit',
+                datafield: 'Edit',
+                columntype: 'button',
+                cellsrenderer: function() {
+                    return "Edit";
+                },
+                buttonclick: function(row) {
+                    // open the popup window when the user clicks a button.
+                    editrow = row;
+                    var offset = $("#columnsGrid").offset();
+                    $("#popupWindow2").jqxWindow({
+                        position: {
+                            x: parseInt(offset.left) + 60,
+                            y: parseInt(offset.top) + 60
+                        }
+                    });
+                    // get the clicked row's data and initialize the input fields.
+                    var dataRecord = $("#columnsGrid").jqxGrid('getrowdata', editrow);
+                    console.log("dataRecord", dataRecord);
+                    $("#fieldname").val(dataRecord.fieldname);
+                    $("#fieldtype").val(dataRecord.fieldtype)
+                    $("#label").val(dataRecord.label)
+                    $("#reqd").val(dataRecord.reqd)
+                        // show the popup window.
+                    $("#popupWindow2").jqxWindow('open');
+                }
             }]
         });
 
-        $("#customersGrid").jqxGrid('selectrow', 0);
+        $("#tableGrid").jqxGrid('selectrow', 0);
     });
 
-}
+    function init_pops() {
+        // initialize the popup window and buttons.
+        $("#popupWindow").jqxWindow({
+            width: 250,
+            resizable: false,
+            isModal: true,
+            autoOpen: false,
+            cancelButton: $("#Cancel"),
+            modalOpacity: 0.01
+        });
+
+        $("#popupWindow").on('open', function() {
+            $("#tabletName").jqxInput('selectAll');
+        });
+
+        $("#Cancel").jqxButton({
+            theme: theme
+        });
+        $("#Save").jqxButton({
+            theme: theme
+        });
+
+        $("#insert").jqxButton({
+            theme: theme
+        });
+        $("#insertall").jqxButton({
+            theme: theme
+        });
+
+
+        // update the edited row when the user clicks the 'Save' button.
+        $("#Save").click(function() {
+            if (editrow >= 0) {
+                var row = {
+                    table: $("#tabletName").val()
+                };
+                var rowID = $('#tableGrid').jqxGrid('getrowid', editrow);
+                $('#tableGrid').jqxGrid('updaterow', rowID, row);
+                $("#popupWindow").jqxWindow('hide');
+            }
+        });
+
+
+        $("#popupWindow2").jqxWindow({
+            width: 250,
+            resizable: false,
+            isModal: true,
+            autoOpen: false,
+            cancelButton: $("#Cancel2"),
+            modalOpacity: 0.01
+        });
+
+        $("#popupWindow2").on('open', function() {
+            $("#tabletName").jqxInput('selectAll');
+        });
+
+        $("#Cancel2").jqxButton({
+            theme: theme
+        });
+        $("#Save2").jqxButton({
+            theme: theme
+        });
+        // update the edited row when the user clicks the 'Save' button.
+        $("#Save2").click(function() {
+            if (editrow >= 0) {
+                var row = {
+                    fieldname: $("#fieldname").val(),
+                    fieldtype: $("#fieldtype").val(),
+                    label: $("#label").val(),
+                    reqd: $("#reqd").val(),
+                };
+
+                var rowID = $('#columnsGrid').jqxGrid('getrowid', editrow);
+                $('#columnsGrid').jqxGrid('updaterow', rowID, row);
+                $("#popupWindow2").jqxWindow('hide');
+            }
+        });
+    }
+
+};

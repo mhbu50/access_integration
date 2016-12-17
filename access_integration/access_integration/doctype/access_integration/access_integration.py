@@ -26,7 +26,7 @@ def byteify(input):
         return input
 
 @frappe.whitelist()
-def do_insert(file):
+def get_db(file):
     # print "file = ", "/home/mohd/frappe-bench/sites/afnan.com", str(file)
     # DATABASE = "/home/mohd/frappe-bench/sites/afnan.com" + str(file)
 
@@ -55,7 +55,7 @@ def do_insert(file):
                 fields = [x for x in fields if x != '']
 
                 v_fields = {}
-                v_fields["fieldtype"] =  "Date"
+                v_fields["fieldtype"] =  "Data"
                 for f in fields:
                     if(f.lstrip().startswith(": (none)")):
                         continue
@@ -90,3 +90,16 @@ def do_insert(file):
             doc.append("permissions", role)
             # doc.insert()
     return json.dumps(dict, encoding='latin1');
+
+    def do_insert(data):
+        role = frappe.get_doc({"doctype": "DocPerm", "role": "Administrator"})
+
+        doc = frappe.get_doc({
+            "doctype": "DocType",
+            "name": table,
+            # "description": "test",
+            "module": "Core",
+            "quick_entry": 0,
+            "fields": v_proprty,
+        })
+        doc.append("permissions", role)
