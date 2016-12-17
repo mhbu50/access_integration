@@ -71,7 +71,7 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                             datafields: dataFields,
                             localdata: [{
                                 "OrderID": 10248,
-                                "Table": "tbl_Used",
+                                "Table": "WILMK",
                                 "EmployeeID": 5,
                                 "OrderDate": "1996-07-04 00:00:00",
                                 "RequiredDate": "1996-08-01 00:00:00",
@@ -115,10 +115,9 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
 
                             }
                         }
-  debugger;
-                        $("#customersGrid").on('cellselect', function(event) {
+
+                        $("#customersGrid").on('rowselect', function(event) {
                             console.log("event.args.row. = ", event);
-                            debugger;
                             var Table = event.args.row.Table;
                             var records = new Array();
                             var length = dataAdapter.records.length;
@@ -173,6 +172,7 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
           $("#Save").click(function () {
               if (editrow >= 0) {
                   var row = { table: $("#tabletName").val() };
+
                   var rowID = $('#customersGrid').jqxGrid('getrowid', editrow);
                   $('#customersGrid').jqxGrid('updaterow', rowID, row);
                   $("#popupWindow").jqxWindow('hide');
@@ -223,6 +223,7 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                     });
                     // get the clicked row's data and initialize the input fields.
                     var dataRecord = $("#customersGrid").jqxGrid('getrowdata', editrow);
+                    console.log("dataRecord",dataRecord);
                     $("#tabletName").val(dataRecord.table);
                     // show the popup window.
                     $("#popupWindow").jqxWindow('open');
