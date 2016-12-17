@@ -5,7 +5,6 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
         single_column: true
     });
 
-
     var upload = page.add_field({
         fieldname: "upload",
         label: __("Upload"),
@@ -31,7 +30,6 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                 var file = "vv.mdb"
                 if (this.fields_dict.attach.fileobj) {
                     file = this.fields_dict.attach.fileobj.filename;
-                    // console.log("attach", this.fields_dict.attach.fileobj.filename);
                 }
 
                 frappe.call({
@@ -85,13 +83,13 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                             editable: true,
                             editmode: 'click'
                         });
-
-                        for (var y in d) {
-                            if (d.hasOwnProperty(variable)) {
-                                console.log("x", variable);
-
-                            }
-                        }
+                        //
+                        // for (var y in d) {
+                        //     if (d.hasOwnProperty(variable)) {
+                        //         console.log("x", variable);
+                        //
+                        //     }
+                        // }
 
                         $("#tableGrid").on('rowselect', function(event) {
                             var dataRecord = $("#tableGrid").jqxGrid('getrowdata', event);
@@ -103,31 +101,28 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
                                 localdata: []
                             }
 
-                            var fld = new Array();
                             for (var x in d[Table]) {
                                 if (d[Table].hasOwnProperty(x)) {
                                     if (d[Table][x].fieldname)
                                         dataSource.localdata.push({
                                             "fieldname": d[Table][x].fieldname,
                                             "fieldtype": d[Table][x].fieldtype,
-                                            "label": d[Table][x].label
+                                            "label": d[Table][x].label,
+                                            "reqd":d[Table][x].reqd
                                         });
                                 }
                             }
 
                             var adapter = new $.jqx.dataAdapter(dataSource);
-
                             // update data source.
                             $("#columnsGrid").jqxGrid({
                                 source: adapter,
                                 editable: true
                             });
                         });
-
                     }
-
                 });
-      d.hide();
+                d.hide();
             }
         });
         d.show();
@@ -289,54 +284,97 @@ frappe.pages['access-integration'].on_page_load = function(wrapper) {
             theme: theme
         });
 
+        $("#insert").click(function() {
+                var rowindex = $('#tableGrid').jqxGrid('getselectedrowindex');
+                var rowID = $('#tableGrid').jqxGrid('getrowdata', rowindex);
+                var table = rowID.table;
+                var fields = [];
 
-        // update the edited row when the user clicks the 'Save' button.
-        $("#Save").click(function() {
-            if (editrow >= 0) {
-                var row = {
-                    table: $("#tabletName").val()
-                };
-                var rowID = $('#tableGrid').jqxGrid('getrowid', editrow);
-                $('#tableGrid').jqxGrid('updaterow', rowID, row);
-                $("#popupWindow").jqxWindow('hide');
-            }
-        });
+           var rows = $('#columnsGrid').jqxGrid('getrows');
 
 
-        $("#popupWindow2").jqxWindow({
-            width: 250,
-            resizable: false,
-            isModal: true,
-            autoOpen: false,
-            cancelButton: $("#Cancel2"),
-            modalOpacity: 0.01
-        });
+           for (var r in rows) {
+             if (rows.hasOwnProperty(r)) {
 
-        $("#popupWindow2").on('open', function() {
-            $("#tabletName").jqxInput('selectAll');
-        });
+               fields.push({
+                    "fieldname": rows[r].fieldname,
+                    "fieldtype": rows[r].fieldtype,
+                    "label": rows[r].label,
+                    "reqd":rows[r].reqd
+                });
+             }
+           }
+           console.log("table",table);
+           console.log("fields",fields);
+           frappe.call({
+          "method": "access_integration.access_integration.doctype.access_integration.access_integration.do_insert",
+          args: {
+              table: table,
+              fields:fields
+          },
+          callback: function (data) {
+            console.log(data);
+          }
+      });
 
-        $("#Cancel2").jqxButton({
-            theme: theme
-        });
-        $("#Save2").jqxButton({
-            theme: theme
-        });
-        // update the edited row when the user clicks the 'Save' button.
-        $("#Save2").click(function() {
-            if (editrow >= 0) {
-                var row = {
-                    fieldname: $("#fieldname").val(),
-                    fieldtype: $("#fieldtype").val(),
-                    label: $("#label").val(),
-                    reqd: $("#reqd").val(),
-                };
 
-                var rowID = $('#columnsGrid').jqxGrid('getrowid', editrow);
-                $('#columnsGrid').jqxGrid('updaterow', rowID, row);
-                $("#popupWindow2").jqxWindow('hide');
-            }
-        });
-    }
+          //  dataSource.localdata.push({
+          //      "fieldname": d[Table][x].fieldname,
+          //      "fieldtype": d[Table][x].fieldtype,
+          //      "label": d[Table][x].label,
+          //      "reqd":d[Table][x].reqd
+          //  });
+         });
+
+
+
+    // update the edited row when the user clicks the 'Save' button.
+    $("#Save").click(function() {
+        if (editrow >= 0) {
+            var row = {
+                table: $("#tabletName").val()
+            };
+            var rowID = $('#tableGrid').jqxGrid('getrowid', editrow);
+            $('#tableGrid').jqxGrid('updaterow', rowID, row);
+            $("#popupWindow").jqxWindow('hide');
+        }
+    });
+
+
+    $("#popupWindow2").jqxWindow({
+        width: 250,
+        resizable: false,
+        isModal: true,
+        autoOpen: false,
+        cancelButton: $("#Cancel2"),
+        modalOpacity: 0.01
+    });
+
+    $("#popupWindow2").on('open', function() {
+        $("#tabletName").jqxInput('selectAll');
+    });
+
+    $("#Cancel2").jqxButton({
+        theme: theme
+    });
+    $("#Save2").jqxButton({
+        theme: theme
+    });
+    // update the edited row when the user clicks the 'Save' button.
+    $("#Save2").click(function() {
+        if (editrow >= 0) {
+            var row = {
+                fieldname: $("#fieldname").val(),
+                fieldtype: $("#fieldtype").val(),
+                label: $("#label").val(),
+                reqd: $("#reqd").val(),
+            };
+
+            var rowID = $('#columnsGrid').jqxGrid('getrowid', editrow);
+            $('#columnsGrid').jqxGrid('updaterow', rowID, row);
+            $("#popupWindow2").jqxWindow('hide');
+        }
+    });
+}
 
 };

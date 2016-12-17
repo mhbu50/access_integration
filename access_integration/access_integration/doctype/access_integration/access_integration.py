@@ -74,7 +74,7 @@ def get_db(file):
                         v_fields["fieldtype"] = "Int"
                     print "field = ", f.lstrip()
                 v_proprty.append(v_fields)
-                # print "v_proprty = ",v_proprty
+                print "v_proprty = ",v_proprty
             dict[table]=v_proprty
             print "/////////////////////////////////////////"
             role = frappe.get_doc({"doctype": "DocPerm", "role": "Administrator"})
@@ -90,16 +90,18 @@ def get_db(file):
             doc.append("permissions", role)
             # doc.insert()
     return json.dumps(dict, encoding='latin1');
+@frappe.whitelist()
+def do_insert(table, fields):
+    print "table = {0} fields = {1}".format(table,json.dumps(fields))
+    role = frappe.get_doc({"doctype": "DocPerm", "role": "Administrator"})
 
-    def do_insert(data):
-        role = frappe.get_doc({"doctype": "DocPerm", "role": "Administrator"})
-
-        doc = frappe.get_doc({
-            "doctype": "DocType",
-            "name": table,
-            # "description": "test",
-            "module": "Core",
-            "quick_entry": 0,
-            "fields": v_proprty,
-        })
-        doc.append("permissions", role)
+    doc = frappe.get_doc({
+        "doctype": "DocType",
+        "name": table,
+        # "description": "test",
+        "module": "Core",
+        "quick_entry": 0,
+        "fields": json.loads(fields),
+    })
+    doc.append("permissions", role)
+    doc.insert()
